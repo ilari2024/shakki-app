@@ -10,59 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
       - uses: actions/checkout@v3
 
-      # 2️⃣ Set up Node.js
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # 3️⃣ Install Cordova
       - run: npm install -g cordova
 
-      # 4️⃣ Add Android platform
       - run: cordova platform add android
 
-      # 5️⃣ Build APK
       - run: cordova build android --release
 
-      # 6️⃣ Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: shakki-app-apk
-          path: platforms/android/app/build/outputs/apk/release/app-release.apk
-name: Build Android APK
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1️⃣ Checkout repo
-      - uses: actions/checkout@v3
-
-      # 2️⃣ Set up Node.js
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      # 3️⃣ Install Cordova
-      - run: npm install -g cordova
-
-      # 4️⃣ Add Android platform
-      - run: cordova platform add android
-
-      # 5️⃣ Build APK
-      - run: cordova build android --release
-
-      # 6️⃣ Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
