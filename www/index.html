@@ -1,735 +1,257 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <script data-goatcounter="https://ilari2024.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shakki</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #fef3c7, #fde68a);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    #menu, #difficulty-menu, #game-container {
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      max-width: 600px;
-      width: 100%;
-    }
-
-    h1 {
-      text-align: center;
-      color: #78350f;
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
-    }
-
-    h2 {
-      text-align: center;
-      color: #78350f;
-      font-size: 2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .menu-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    button {
-      padding: 1rem 1.5rem;
-      font-size: 1.25rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: white;
-    }
-
-    .btn-2player {
-      background: #16a34a;
-    }
-
-    .btn-2player:hover {
-      background: #15803d;
-    }
-
-    .btn-ai {
-      background: #2563eb;
-    }
-
-    .btn-ai:hover {
-      background: #1d4ed8;
-    }
-
-    .btn-easy {
-      background: #22c55e;
-    }
-
-    .btn-easy:hover {
-      background: #16a34a;
-    }
-
-    .btn-medium {
-      background: #eab308;
-    }
-
-    .btn-medium:hover {
-      background: #ca8a04;
-    }
-
-    .btn-hard {
-      background: #dc2626;
-    }
-
-    .btn-hard:hover {
-      background: #b91c1c;
-    }
-
-    .btn-expert {
-      background: #7c2d12;
-    }
-
-    .btn-expert:hover {
-      background: #431407;
-    }
-
-    .btn-back, .btn-menu {
-      background: #6b7280;
-    }
-
-    .btn-back:hover, .btn-menu:hover {
-      background: #4b5563;
-    }
-
-    .btn-fullscreen {
-      background: #9333ea;
-    }
-
-    .btn-fullscreen:hover {
-      background: #7e22ce;
-    }
-
-    .btn-undo {
-      background: #eab308;
-    }
-
-    .btn-undo:hover {
-      background: #ca8a04;
-    }
-
-    .btn-undo:disabled {
-      background: #d1d5db;
-      cursor: not-allowed;
-    }
-
-    .btn-reset {
-      background: #dc2626;
-    }
-
-    .btn-reset:hover {
-      background: #b91c1c;
-    }
-
-    .game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .game-status {
-      color: #78350f;
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-
-    .game-buttons {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .game-buttons button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-    }
-
-    #board {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      border: 4px solid #78350f;
-      border-radius: 0.5rem;
-      overflow: hidden;
-      margin: 0 auto;
-      max-width: 600px;
-      aspect-ratio: 1/1;
-    }
-
-    .square {
-      aspect-ratio: 1/1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-      font-size: 4rem;
-      user-select: none;
-      transition: opacity 0.2s;
-    }
-
-    .square:hover {
-      opacity: 0.9;
-    }
-
-    .light {
-      background: #fffbeb;
-    }
-
-    .dark {
-      background: #16a34a;
-    }
-
-    .selected {
-      box-shadow: inset 0 0 0 4px #facc15;
-    }
-
-    .white-piece {
-      color: #f3f4f6;
-      text-shadow: 
-        0 0 0 2px #000,
-        0 0 0 2px #000,
-        0 0 0 2px #000;
-      -webkit-text-stroke: 2px black;
-    }
-
-    .black-piece {
-      color: #111827;
-    }
-
-    .legal-move {
-      position: absolute;
-      width: 1.5rem;
-      height: 1.5rem;
-      background: #4ade80;
-      border-radius: 50%;
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #fullscreen-overlay {
-      position: fixed;
-      inset: 0;
-      background: black;
-      z-index: 999999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #fullscreen-overlay.active {
-      display: flex;
-    }
-
-    #fullscreen-board {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      width: 100vmin;
-      height: 100vmin;
-    }
-
-    #fullscreen-close {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: none;
-      border: none;
-      color: white;
-      font-size: 3rem;
-      cursor: pointer;
-      padding: 0;
-      width: 3rem;
-      height: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000000;
-    }
-
-    #fullscreen-close:hover {
-      color: #d1d5db;
-    }
-
-    .fullscreen-square {
-      aspect-ratio: 1/1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-      user-select: none;
-    }
-
-    .fullscreen-piece {
-      font-size: clamp(2rem, 8vmin, 6rem);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koulun Ruokalista</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .menu-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .filter-btn {
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+    </style>
 </head>
-<body>
-  <div id="menu">
-    <h1>♔ Shakki ♚</h1>
-    <div class="menu-buttons">
-      <button class="btn-2player" onclick="startGame('2player')">Pelaa kaveria vastaan</button>
-      <button class="btn-ai" onclick="showDifficultyMenu()">Pelaa tietokonetta vastaan</button>
+<body class="p-4 sm:p-6 lg:p-10">
+    <div class="max-w-xl mx-auto">
+        <!-- Otsikko -->
+        <header class="mb-8 text-center">
+            <div class="inline-block p-3 bg-blue-100 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Lohjan Kouluruoka</h1>
+            <p class="text-gray-500 mt-2">Päivittäinen ruokalista suoraan koululta</p>
+            
+            <button onclick="fetchMenu()" class="mt-6 inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm active:scale-95">
+                <svg id="refresh-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Päivitä ruokalistaa
+            </button>
+        </header>
+
+        <!-- Suodattimet -->
+        <div class="mb-8 p-1 bg-gray-100 rounded-xl flex flex-wrap justify-between gap-1 shadow-inner">
+            <button onclick="setFilter('kaikki')" id="btn-kaikki" class="filter-btn flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">KAIKKI</button>
+            <button onclick="setFilter('aamupala')" id="btn-aamupala" class="filter-btn flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">AAMUPALA</button>
+            <button onclick="setFilter('lounas')" id="btn-lounas" class="filter-btn active flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">LOUNAS</button>
+            <button onclick="setFilter('välipala')" id="btn-välipala" class="filter-btn flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">VÄLIPALA</button>
+        </div>
+
+        <!-- Lataustila -->
+        <div id="loader" class="flex flex-col items-center justify-center py-20">
+            <div class="relative w-12 h-12">
+                <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-100 rounded-full"></div>
+                <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p class="mt-4 text-gray-400 font-medium text-sm">Etsitään ruokalistaa...</p>
+        </div>
+
+        <!-- Pääsisältö -->
+        <main id="content" class="hidden space-y-6">
+            <div id="menu-container" class="space-y-6"></div>
+            
+            <div id="show-more-container" class="hidden text-center pt-4">
+                <button onclick="showAllDays()" class="inline-flex items-center px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-sm active:bg-gray-100">
+                    Näytä koko viikko
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+            </div>
+        </main>
+
+        <!-- Virheilmoitus (vain jos haku todella epäonnistuu) -->
+        <div id="notice-box" class="hidden mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-3 animate-fade-up">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <div class="w-full">
+                <h3 class="text-sm font-bold text-amber-800">Yhteysongelma</h3>
+                <p id="error-message" class="text-xs text-amber-700 mt-1 leading-relaxed">
+                    Ruokalistaa ei saatu noudettua juuri nyt. Kokeile päivittää sivu hetken kuluttua.
+                </p>
+            </div>
+        </div>
+
+        <footer class="mt-16 pb-8 text-center text-xs text-gray-400">
+            <p>&copy; Ruokalista v3.5</p>
+            <p class="mt-1">ilaro2024 2026</p>
+        </footer>
     </div>
-  </div>
 
-  <div id="difficulty-menu" class="hidden">
-    <h2>Valitse vaikeustaso</h2>
-    <div class="menu-buttons">
-      <button class="btn-easy" onclick="startGame('ai', 'easy')">Helppo</button>
-      <button class="btn-medium" onclick="startGame('ai', 'medium')">Keskitaso</button>
-      <button class="btn-hard" onclick="startGame('ai', 'hard')">Vaikea</button>
-      <button class="btn-expert" onclick="startGame('ai', 'expert')">Erittäin vaikea</button>
-      <button class="btn-back" onclick="backToMenu()">Takaisin</button>
-    </div>
-  </div>
-
-  <div id="game-container" class="hidden">
-    <div class="game-header">
-      <div class="game-status" id="status">Vuoro: Valkoinen</div>
-      <div class="game-buttons">
-        <button class="btn-fullscreen" onclick="toggleFullscreen()">Kokonäyttö</button>
-        <button class="btn-undo" id="undo-btn" onclick="undoMove()">Peru</button>
-        <button class="btn-reset" onclick="resetGame()">Uusi peli</button>
-      </div>
-    </div>
-    <div id="board"></div>
-    <button class="btn-menu" onclick="backToMenu()" style="margin-top: 1rem; width: 100%;">Palaa valikkoon</button>
-  </div>
-
-  <div id="fullscreen-overlay">
-    <button id="fullscreen-close" onclick="toggleFullscreen()">×</button>
-    <div id="fullscreen-board"></div>
-  </div>
-
-  <script>
-    const pieceSymbols = {
-      'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
-      'K': '♚', 'Q': '♛', 'R': '♜', 'B': '♝', 'N': '♞', 'P': '♟'
-    };
-
-    let board = [];
-    let gameMode = null;
-    let difficulty = null;
-    let currentPlayer = 'white';
-    let selectedSquare = null;
-    let legalMoves = [];
-    let moveHistory = [];
-    let gameOver = false;
-    let isFullscreen = false;
-
-    function initializeBoard() {
-      const b = Array(8).fill(null).map(() => Array(8).fill(null));
-      b[0] = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
-      b[1] = Array(8).fill('p');
-      b[6] = Array(8).fill('P');
-      b[7] = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'];
-      return b;
-    }
-
-    function isWhitePiece(piece) {
-      return piece && piece === piece.toUpperCase();
-    }
-
-    function showDifficultyMenu() {
-      document.getElementById('menu').classList.add('hidden');
-      document.getElementById('difficulty-menu').classList.remove('hidden');
-    }
-
-    function backToMenu() {
-      document.getElementById('menu').classList.remove('hidden');
-      document.getElementById('difficulty-menu').classList.add('hidden');
-      document.getElementById('game-container').classList.add('hidden');
-      board = initializeBoard();
-      gameMode = null;
-      difficulty = null;
-      currentPlayer = 'white';
-      selectedSquare = null;
-      legalMoves = [];
-      moveHistory = [];
-      gameOver = false;
-    }
-
-    function startGame(mode, diff = null) {
-      gameMode = mode;
-      difficulty = diff;
-      board = initializeBoard();
-      currentPlayer = 'white';
-      selectedSquare = null;
-      legalMoves = [];
-      moveHistory = [];
-      gameOver = false;
-      
-      document.getElementById('menu').classList.add('hidden');
-      document.getElementById('difficulty-menu').classList.add('hidden');
-      document.getElementById('game-container').classList.remove('hidden');
-      
-      renderBoard();
-      updateStatus();
-    }
-
-    function renderBoard() {
-      const boardEl = document.getElementById('board');
-      boardEl.innerHTML = '';
-      
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          const square = document.createElement('div');
-          square.className = 'square ' + ((row + col) % 2 === 0 ? 'light' : 'dark');
-          square.dataset.row = row;
-          square.dataset.col = col;
-          square.onclick = () => handleSquareClick(row, col);
-          
-          if (selectedSquare && selectedSquare[0] === row && selectedSquare[1] === col) {
-            square.classList.add('selected');
-          }
-          
-          const piece = board[row][col];
-          if (piece) {
-            const pieceEl = document.createElement('span');
-            pieceEl.textContent = pieceSymbols[piece];
-            pieceEl.className = isWhitePiece(piece) ? 'white-piece' : 'black-piece';
-            square.appendChild(pieceEl);
-          }
-          
-          if (legalMoves.some(([r, c]) => r === row && c === col)) {
-            const dot = document.createElement('div');
-            dot.className = 'legal-move';
-            square.appendChild(dot);
-          }
-          
-          boardEl.appendChild(square);
-        }
-      }
-      
-      document.getElementById('undo-btn').disabled = moveHistory.length === 0;
-    }
-
-    function renderFullscreenBoard() {
-      const boardEl = document.getElementById('fullscreen-board');
-      boardEl.innerHTML = '';
-      
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          const square = document.createElement('div');
-          square.className = 'fullscreen-square ' + ((row + col) % 2 === 0 ? 'light' : 'dark');
-          square.onclick = () => handleSquareClick(row, col);
-          
-          if (selectedSquare && selectedSquare[0] === row && selectedSquare[1] === col) {
-            square.classList.add('selected');
-          }
-          
-          const piece = board[row][col];
-          if (piece) {
-            const pieceEl = document.createElement('span');
-            pieceEl.textContent = pieceSymbols[piece];
-            pieceEl.className = 'fullscreen-piece ' + (isWhitePiece(piece) ? 'white-piece' : 'black-piece');
-            square.appendChild(pieceEl);
-          }
-          
-          if (legalMoves.some(([r, c]) => r === row && c === col)) {
-            const dot = document.createElement('div');
-            dot.className = 'legal-move';
-            square.appendChild(dot);
-          }
-          
-          boardEl.appendChild(square);
-        }
-      }
-    }
-
-    function toggleFullscreen() {
-      isFullscreen = !isFullscreen;
-      const overlay = document.getElementById('fullscreen-overlay');
-      
-      if (isFullscreen) {
-        overlay.classList.add('active');
-        renderFullscreenBoard();
-      } else {
-        overlay.classList.remove('active');
-      }
-    }
-
-    function updateStatus() {
-      const statusEl = document.getElementById('status');
-      if (gameOver) {
-        statusEl.textContent = gameOver;
-      } else {
-        statusEl.textContent = `Vuoro: ${currentPlayer === 'white' ? 'Valkoinen' : 'Musta'}`;
-      }
-    }
-
-    function getLegalMoves(row, col) {
-      const piece = board[row][col];
-      if (!piece) return [];
-      
-      const isWhite = isWhitePiece(piece);
-      if ((isWhite && currentPlayer !== 'white') || (!isWhite && currentPlayer !== 'black')) {
-        return [];
-      }
-
-      const moves = [];
-      const type = piece.toLowerCase();
-
-      function addMove(r, c) {
-        if (r < 0 || r > 7 || c < 0 || c > 7) return false;
-        const target = board[r][c];
-        if (!target) {
-          moves.push([r, c]);
-          return true;
-        }
-        if (isWhitePiece(target) !== isWhite) {
-          moves.push([r, c]);
-        }
-        return false;
-      }
-
-      function addDirection(dr, dc, limit = 8) {
-        for (let i = 1; i <= limit; i++) {
-          if (!addMove(row + dr * i, col + dc * i)) break;
-        }
-      }
-
-      if (type === 'p') {
-        const dir = isWhite ? -1 : 1;
-        const startRow = isWhite ? 6 : 1;
+    <script>
+        const rssUrl = "https://eruokalista.lohja.fi/AromieMenus/FI/Default/Lohja/Koulut/api/Common/Restaurant/GetRssFeed/0d4884d5-33be-4e09-82ee-66153fa4a749/1";
         
-        if (!board[row + dir]?.[col]) {
-          moves.push([row + dir, col]);
-          if (row === startRow && !board[row + 2 * dir]?.[col]) {
-            moves.push([row + 2 * dir, col]);
-          }
+        let allItems = [];
+        let currentFilter = 'lounas';
+        let isShowingAllDays = false;
+
+        const proxyUrls = [
+            (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&ts=${Date.now()}`,
+            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+        ];
+
+        async function fetchMenu(proxyIndex = 0) {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            const refreshIcon = document.getElementById('refresh-icon');
+            const noticeBox = document.getElementById('notice-box');
+
+            const targetUrl = proxyUrls[proxyIndex](rssUrl);
+            
+            if (proxyIndex === 0) {
+                loader.classList.remove('hidden');
+                content.classList.add('hidden');
+                noticeBox.classList.add('hidden'); 
+                refreshIcon.classList.add('animate-spin');
+                allItems = [];
+            }
+
+            try {
+                const response = await fetch(targetUrl);
+                if (!response.ok) throw new Error(); // Heitetään virhe hiljaa
+                
+                let rawData = "";
+                if (proxyIndex === 0) {
+                    const json = await response.json();
+                    rawData = json.contents;
+                } else {
+                    rawData = await response.text();
+                }
+
+                if (rawData && typeof rawData === 'string') {
+                    rawData = rawData.trim();
+                    const rssIndex = rawData.indexOf('<rss');
+                    const xmlIndex = rawData.indexOf('<?xml');
+                    let start = (xmlIndex !== -1 && (rssIndex === -1 || xmlIndex < rssIndex)) ? xmlIndex : rssIndex;
+                    if (start !== -1) rawData = rawData.substring(start);
+                }
+
+                if (!rawData || !rawData.includes('<rss')) throw new Error();
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(rawData, "text/xml");
+                if (xmlDoc.getElementsByTagName("parsererror").length > 0) throw new Error();
+
+                const items = Array.from(xmlDoc.getElementsByTagName("item"));
+                if (items.length === 0) throw new Error();
+
+                // Jos päästään tänne, haku onnistui
+                allItems = items;
+                renderMenu();
+                content.classList.remove('hidden');
+                loader.classList.add('hidden');
+                noticeBox.classList.add('hidden');
+                refreshIcon.classList.remove('animate-spin');
+                
+                if (allItems.length > 1 && !isShowingAllDays) {
+                    document.getElementById('show-more-container').classList.remove('hidden');
+                }
+            } catch (e) { 
+                // Ei tulosteta mitään konsoliin tässä vaiheessa, jos on vielä proxy-vaihtoehtoja jäljellä
+                if (proxyIndex < proxyUrls.length - 1) {
+                    setTimeout(() => fetchMenu(proxyIndex + 1), 300);
+                } else {
+                    // Vasta jos KAIKKI epäonnistuvat, näytetään virhe käyttäjälle
+                    loader.classList.add('hidden');
+                    refreshIcon.classList.remove('animate-spin');
+                    noticeBox.classList.remove('hidden');
+                }
+            }
         }
-        
-        [-1, 1].forEach(dc => {
-          const target = board[row + dir]?.[col + dc];
-          if (target && isWhitePiece(target) !== isWhite) {
-            moves.push([row + dir, col + dc]);
-          }
-        });
-      } else if (type === 'n') {
-        [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr, dc]) => {
-          addMove(row + dr, col + dc);
-        });
-      } else if (type === 'b') {
-        [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr, dc]) => addDirection(dr, dc));
-      } else if (type === 'r') {
-        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr, dc]) => addDirection(dr, dc));
-      } else if (type === 'q') {
-        [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr, dc]) => addDirection(dr, dc));
-      } else if (type === 'k') {
-        [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr, dc]) => {
-          addMove(row + dr, col + dc);
-        });
-      }
 
-      return moves;
-    }
-
-    function handleSquareClick(row, col) {
-      if (gameOver) return;
-      if (gameMode === 'ai' && currentPlayer === 'black') return;
-
-      if (selectedSquare) {
-        const isLegal = legalMoves.some(([r, c]) => r === row && c === col);
-        if (isLegal) {
-          makeMove(selectedSquare[0], selectedSquare[1], row, col);
-        } else {
-          const piece = board[row][col];
-          if (piece && ((currentPlayer === 'white' && isWhitePiece(piece)) || (currentPlayer === 'black' && !isWhitePiece(piece)))) {
-            selectedSquare = [row, col];
-            legalMoves = getLegalMoves(row, col);
-          } else {
-            selectedSquare = null;
-            legalMoves = [];
-          }
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${filter}`).classList.add('active');
+            if (allItems.length > 0) renderMenu();
         }
-      } else {
-        const piece = board[row][col];
-        if (piece && ((currentPlayer === 'white' && isWhitePiece(piece)) || (currentPlayer === 'black' && !isWhitePiece(piece)))) {
-          selectedSquare = [row, col];
-          legalMoves = getLegalMoves(row, col);
-        }
-      }
-      
-      if (isFullscreen) {
-        renderFullscreenBoard();
-      } else {
-        renderBoard();
-      }
-    }
 
-    function makeMove(fromRow, fromCol, toRow, toCol) {
-      moveHistory.push({
-        from: [fromRow, fromCol],
-        to: [toRow, toCol],
-        piece: board[fromRow][fromCol],
-        captured: board[toRow][toCol]
-      });
-      
-      board[toRow][toCol] = board[fromRow][fromCol];
-      board[fromRow][fromCol] = null;
-      
-      currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
-      selectedSquare = null;
-      legalMoves = [];
-      
-      checkGameOver();
-      
-      if (isFullscreen) {
-        renderFullscreenBoard();
-      } else {
-        renderBoard();
-      }
-      updateStatus();
-      
-      if (gameMode === 'ai' && currentPlayer === 'black' && !gameOver) {
-        setTimeout(makeAIMove, 500);
-      }
-    }
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+            const displayItems = isShowingAllDays ? allItems : allItems.slice(0, 1);
 
-    function checkGameOver() {
-      let hasLegalMove = false;
-      let kingExists = false;
+            displayItems.forEach((item) => {
+                const title = item.getElementsByTagName("title")[0]?.textContent || "Päivä";
+                const description = item.getElementsByTagName("description")[0]?.textContent || "";
+                const mealOptions = description.split('<br><br>').filter(opt => opt.trim() !== "");
+                
+                const filteredMeals = mealOptions.filter(option => {
+                    if (currentFilter === 'kaikki') return true;
+                    return option.toLowerCase().includes(currentFilter.toLowerCase());
+                });
 
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = board[r][c];
-          if (piece && ((currentPlayer === 'white' && isWhitePiece(piece)) || (currentPlayer === 'black' && !isWhitePiece(piece)))) {
-            if (piece.toLowerCase() === 'k') kingExists = true;
-            const moves = getLegalMoves(r, c);
-            if (moves.length > 0) hasLegalMove = true;
-          }
-        }
-      }
+                if (filteredMeals.length === 0) return;
 
-      if (!kingExists) {
-        gameOver = currentPlayer === 'white' ? 'Musta voitti!' : 'Valkoinen voitti!';
-      } else if (!hasLegalMove) {
-        gameOver = 'Tasapeli - Patti!';
-      }
-    }
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden menu-card animate-fade-up";
+                
+                let mealsHtml = filteredMeals.map(option => {
+                    const lines = option.split('<br>');
+                    const titleLine = lines[0];
+                    const components = lines.slice(1).join(' • ');
+                    const label = titleLine.includes(':') ? titleLine.split(':')[0] : "Lounas";
+                    const dish = titleLine.includes(':') ? titleLine.split(':')[1] : titleLine;
 
-    function makeAIMove() {
-      let allMoves = [];
-      
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = board[r][c];
-          if (piece && !isWhitePiece(piece)) {
-            const moves = getLegalMoves(r, c);
-            moves.forEach(([toR, toC]) => {
-              allMoves.push({ from: [r, c], to: [toR, toC] });
+                    let badgeColor = "bg-blue-50 text-blue-700";
+                    if (label.toLowerCase().includes("aamu")) badgeColor = "bg-orange-50 text-orange-700";
+                    if (label.toLowerCase().includes("väli")) badgeColor = "bg-purple-50 text-purple-700";
+
+                    return `
+                        <div class="p-6 border-b last:border-0 border-gray-50">
+                            <span class="inline-block px-2 py-0.5 ${badgeColor} text-[10px] font-bold uppercase tracking-wider rounded mb-2">${label}</span>
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight">${dish}</h3>
+                            ${components ? `<p class="mt-2 text-sm text-gray-400 leading-relaxed font-medium">${components}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="bg-gray-50/50 px-6 py-3 border-b border-gray-100">
+                        <div class="flex items-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+                            <span class="mr-2 text-sm">📅</span> ${title}
+                        </div>
+                    </div>
+                    <div class="divide-y divide-gray-50">${mealsHtml}</div>
+                `;
+                container.appendChild(card);
             });
-          }
         }
-      }
 
-      if (allMoves.length === 0) {
-        checkGameOver();
-        return;
-      }
-
-      let chosenMove;
-      
-      if (difficulty === 'easy') {
-        chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
-      } else if (difficulty === 'medium') {
-        const captureMoves = allMoves.filter(m => board[m.to[0]][m.to[1]]);
-        if (captureMoves.length > 0 && Math.random() > 0.3) {
-          chosenMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
-        } else {
-          chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+        function showAllDays() {
+            isShowingAllDays = true;
+            renderMenu();
+            document.getElementById('show-more-container').classList.add('hidden');
         }
-      } else {
-        const scored = allMoves.map(m => {
-          let score = 0;
-          const target = board[m.to[0]][m.to[1]];
-          if (target) {
-            const values = { p: 1, n: 3, b: 3, r: 5, q: 9 };
-            score += values[target.toLowerCase()] || 0;
-          }
-          score += Math.random() * 0.5;
-          return { move: m, score };
-        });
-        scored.sort((a, b) => b.score - a.score);
-        chosenMove = scored[0].move;
-      }
 
-      makeMove(chosenMove.from[0], chosenMove.from[1], chosenMove.to[0], chosenMove.to[1]);
-    }
-
-    function undoMove() {
-      if (moveHistory.length === 0) return;
-      
-      const lastMove = moveHistory.pop();
-      board[lastMove.from[0]][lastMove.from[1]] = lastMove.piece;
-      board[lastMove.to[0]][lastMove.to[1]] = lastMove.captured;
-      
-      currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
-      selectedSquare = null;
-      legalMoves = [];
-      gameOver = false;
-      
-      if (isFullscreen) {
-        renderFullscreenBoard();
-      } else {
-        renderBoard();
-      }
-      updateStatus();
-    }
-
-    function resetGame() {
-      board = initializeBoard();
-      currentPlayer = 'white';
-      selectedSquare = null;
-      legalMoves = [];
-      moveHistory = [];
-      gameOver = false;
-      
-      if (isFullscreen) {
-        renderFullscreenBoard();
-      } else {
-        renderBoard();
-      }
-      updateStatus();
-    }
-
-    board = initializeBoard();
-  </script>
+        window.onload = () => fetchMenu();
+    </script>
 </body>
 </html>
+
