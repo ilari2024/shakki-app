@@ -2,20 +2,422 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Uudelleenohjaus…</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Piirrä ja Pudota - Säädettävä Lattia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            font-family: system-ui, -apple-system, sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            width: 100vw;
+            height: 100dvh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #ui-layer {
+            position: absolute;
+            top: var(--sat, 12px);
+            left: 0;
+            width: 100%;
+            padding: 12px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .toolbar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 100%;
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            padding: 10px;
+            border-radius: 20px;
+            width: fit-content;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+            max-width: calc(100vw - 24px);
+        }
+        .draggable-item {
+            min-width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .item-box { background: #3b82f6; width: 20px; height: 20px; border-radius: 4px; }
+        .item-circle { background: #ef4444; width: 20px; height: 20px; border-radius: 50%; }
+        .item-triangle { 
+            width: 0; height: 0; 
+            border-left: 12px solid transparent; 
+            border-right: 12px solid transparent; 
+            border-bottom: 20px solid #facc15; 
+        }
+        .item-bar { background: #22c55e; width: 30px; height: 8px; border-radius: 4px; }
+        .item-star { 
+            background: #a855f7; width: 20px; height: 20px; 
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+        
+        .btn {
+            pointer-events: auto;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.1s;
+        }
+        .btn-red { background: #dc2626; }
+        .btn-orange { background: #f97316; }
+        .btn-blue { background: #2563eb; }
+        .btn-gray { background: #4b5563; }
 
-    <!-- Välitön uudelleenohjaus -->
-    <meta http-equiv="refresh" content="0; url=https://ipukskslsdnfkf.github.io/shakki/">
+        #settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            z-index: 100;
+            width: 90%;
+            max-width: 320px;
+            display: none;
+            pointer-events: auto;
+        }
+        .setting-row { margin-bottom: 20px; }
+        .setting-row label { display: block; font-size: 14px; margin-bottom: 8px; color: #ccc; }
+        input[type="range"] { width: 100%; accent-color: #3b82f6; }
 
-    <!-- Varalla JS -->
-    <script>
-        window.location.replace("https://ipukskslsdnfkf.github.io/shakki/");
-    </script>
+        #drag-proxy {
+            position: fixed;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+            opacity: 0.7;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 <body>
-    <p>Siirrytään shakkiin… ♟️</p>
-    <p>Jos et siirry automaattisesti, klikkaa
-        <a href="https://ipukskslsdnfkf.github.io/shakki/">tästä</a>.
-    </p>
+
+    <div id="ui-layer">
+        <div class="toolbar-container">
+            <div class="flex gap-2 pointer-events-auto">
+                <button id="clearBtn" class="btn btn-red">TYHJENNÄ</button>
+                <button id="explodeBtn" class="btn btn-orange">RÄJÄYTÄ</button>
+                <button id="settingsBtn" class="btn btn-gray">⚙️ ASETUKSET</button>
+            </div>
+            <div class="toolbar">
+                <div class="draggable-item" data-type="box"><div class="item-box"></div></div>
+                <div class="draggable-item" data-type="circle"><div class="item-circle"></div></div>
+                <div class="draggable-item" data-type="triangle"><div class="item-triangle"></div></div>
+                <div class="draggable-item" data-type="bar"><div class="item-bar"></div></div>
+                <div class="draggable-item" data-type="star"><div class="item-star"></div></div>
+                <button id="rainBtn" class="btn btn-blue">SADE</button>
+            </div>
+            <div id="statusCount" class="text-white/60 text-xs font-medium px-2">Esineitä: 0 / 1000</div>
+        </div>
+    </div>
+
+    <div id="settings-panel">
+        <h2 class="text-xl font-bold mb-4">Asetukset</h2>
+        
+        <div class="setting-row">
+            <label id="label-floor">Lattian korkeus: <span id="val-floor">0</span></label>
+            <input type="range" id="input-floor" min="-20" max="100" value="0">
+            <p class="text-[10px] text-gray-400 mt-1">Negatiivinen arvo vie lattian ruudun ulkopuolelle.</p>
+        </div>
+
+        <div class="setting-row">
+            <label id="label-gravity">Painovoima: <span id="val-gravity">1.5</span></label>
+            <input type="range" id="input-gravity" min="0" max="40" value="15">
+        </div>
+
+        <div class="setting-row">
+            <label id="label-max">Maksimi esineet: <span id="val-max">1000</span></label>
+            <input type="range" id="input-max" min="10" max="1000" value="1000" step="10">
+        </div>
+
+        <button id="closeSettings" class="w-full btn btn-blue justify-center">VALMIS</button>
+    </div>
+
+    <div id="drag-proxy"></div>
+
+    <script>
+        const { Engine, Render, Runner, Bodies, Composite, Body, Query, Events } = Matter;
+
+        let config = {
+            floorOffset: 0,
+            gravity: 1.5,
+            maxBodies: 1000
+        };
+
+        const engine = Engine.create({ 
+            enableSleeping: false,
+            gravity: { y: config.gravity }
+        });
+        const world = engine.world;
+
+        const render = Render.create({
+            element: document.body,
+            engine: engine,
+            options: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                wireframes: false,
+                background: 'transparent',
+                pixelRatio: window.devicePixelRatio
+            }
+        });
+
+        Render.run(render);
+        const runner = Runner.create();
+        Runner.run(runner, engine);
+
+        const wallThickness = 1000; 
+        const wallOptions = { 
+            isStatic: true, 
+            render: { fillStyle: '#333', visible: true }, 
+            friction: 0.2, 
+            restitution: 0.2 
+        };
+        
+        let ground, leftWall, rightWall;
+
+        function updateWalls() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            
+            if (ground) Composite.remove(world, [ground, leftWall, rightWall]);
+            
+            // floorOffset voi nyt olla negatiivinen
+            const floorY = h - (h * (config.floorOffset / 100));
+            
+            ground = Bodies.rectangle(w/2, floorY + (wallThickness/2), w * 10, wallThickness, wallOptions);
+            leftWall = Bodies.rectangle(-(wallThickness/2), h/2, wallThickness, h * 10, { isStatic: true, render: { visible: false } });
+            rightWall = Bodies.rectangle(w + (wallThickness/2), h/2, wallThickness, h * 10, { isStatic: true, render: { visible: false } });
+            
+            Composite.add(world, [ground, leftWall, rightWall]);
+            
+            render.canvas.width = w;
+            render.canvas.height = h;
+            render.options.width = w;
+            render.options.height = h;
+        }
+        
+        updateWalls();
+
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const closeSettings = document.getElementById('closeSettings');
+        const inputFloor = document.getElementById('input-floor');
+        const inputGravity = document.getElementById('input-gravity');
+        const inputMax = document.getElementById('input-max');
+
+        settingsBtn.onclick = () => settingsPanel.style.display = 'block';
+        closeSettings.onclick = () => settingsPanel.style.display = 'none';
+
+        inputFloor.oninput = (e) => {
+            config.floorOffset = parseInt(e.target.value);
+            document.getElementById('val-floor').innerText = config.floorOffset + "%";
+            updateWalls();
+        };
+
+        inputGravity.oninput = (e) => {
+            config.gravity = parseFloat(e.target.value) / 10;
+            engine.gravity.y = config.gravity;
+            document.getElementById('val-gravity').innerText = config.gravity.toFixed(1);
+        };
+
+        inputMax.oninput = (e) => {
+            config.maxBodies = parseInt(e.target.value);
+            document.getElementById('val-max').innerText = config.maxBodies;
+        };
+
+        let isDrawing = false, isDraggingFromUI = false, isRaining = false, rainInterval = null;
+        let currentPoints = [], dragType = null;
+        const dragProxy = document.getElementById('drag-proxy');
+        const statusCount = document.getElementById('statusCount');
+        const ctx = render.canvas.getContext('2d');
+
+        Events.on(engine, 'afterUpdate', () => {
+            const bodies = Composite.allBodies(world).filter(b => !b.isStatic);
+            if (bodies.length > config.maxBodies) {
+                Composite.remove(world, bodies[0]);
+            }
+            statusCount.innerText = `Esineitä: ${bodies.length} / ${config.maxBodies}`;
+        });
+
+        function explodeEverything() {
+            Composite.allBodies(world).filter(b => !b.isStatic).forEach(body => {
+                Body.applyForce(body, body.position, {
+                    x: (Math.random() - 0.5) * 0.1 * body.mass,
+                    y: (Math.random() - 1.2) * 0.1 * body.mass
+                });
+            });
+        }
+
+        document.getElementById('explodeBtn').onclick = explodeEverything;
+
+        document.getElementById('rainBtn').onclick = function() {
+            isRaining = !isRaining;
+            this.classList.toggle('bg-emerald-500');
+            if (isRaining) {
+                rainInterval = setInterval(() => {
+                    const types = ['box', 'circle', 'triangle', 'bar', 'star'];
+                    createPhysicsObject(Math.random() * window.innerWidth, -50, types[Math.floor(Math.random() * types.length)]);
+                }, 100);
+            } else {
+                clearInterval(rainInterval);
+            }
+        };
+
+        document.querySelectorAll('.draggable-item').forEach(item => {
+            const handleStart = (e) => {
+                isDraggingFromUI = true;
+                dragType = item.dataset.type;
+                const pos = e.touches ? e.touches[0] : e;
+                dragProxy.style.display = 'block';
+                dragProxy.style.left = pos.clientX + 'px';
+                dragProxy.style.top = pos.clientY + 'px';
+                dragProxy.innerHTML = `<div class="item-${dragType}"></div>`;
+                e.stopPropagation();
+            };
+            item.addEventListener('touchstart', handleStart, {passive: false});
+            item.addEventListener('mousedown', handleStart);
+        });
+
+        const handleMove = (e) => {
+            const pos = e.touches ? e.touches[0] : e;
+            if (isDraggingFromUI) {
+                dragProxy.style.left = pos.clientX + 'px';
+                dragProxy.style.top = pos.clientY + 'px';
+            } else if (isDrawing) {
+                addPoint(pos.clientX, pos.clientY);
+            }
+        };
+
+        window.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('mousemove', handleMove);
+
+        const handleStart = (e) => {
+            if (e.target.closest('#ui-layer') || e.target.closest('#settings-panel')) return;
+            isDrawing = true;
+            const pos = e.touches ? e.touches[0] : e;
+            currentPoints = [{ x: pos.clientX, y: pos.clientY }];
+        };
+
+        window.addEventListener('touchstart', handleStart, { passive: false });
+        window.addEventListener('mousedown', handleStart);
+
+        const handleEnd = (e) => {
+            const pos = (e.changedTouches ? e.changedTouches[0] : e);
+            if (isDraggingFromUI) {
+                createPhysicsObject(pos.clientX, pos.clientY, dragType);
+                isDraggingFromUI = false;
+                dragProxy.style.display = 'none';
+            } else if (isDrawing) {
+                if (currentPoints.length < 3) removeAt(pos.clientX, pos.clientY);
+                else stopDrawing();
+            }
+        };
+
+        window.addEventListener('touchend', handleEnd);
+        window.addEventListener('mouseup', handleEnd);
+
+        function addPoint(x, y) {
+            const last = currentPoints[currentPoints.length - 1];
+            if (!last || Math.hypot(x - last.x, y - last.y) > 10) currentPoints.push({ x, y });
+        }
+
+        function removeAt(x, y) {
+            const bodies = Composite.allBodies(world).filter(b => !b.isStatic);
+            const clicked = Query.point(bodies, { x, y });
+            if (clicked.length > 0) Composite.remove(world, clicked[0].parent || clicked[0]);
+        }
+
+        function createPhysicsObject(x, y, type) {
+            let body;
+            const opt = { restitution: 0.5, friction: 0.1 };
+            const c = { box: '#3b82f6', circle: '#ef4444', triangle: '#facc15', bar: '#22c55e', star: '#a855f7' };
+            switch(type) {
+                case 'box': body = Bodies.rectangle(x, y, 40, 40, { ...opt, render: { fillStyle: c.box } }); break;
+                case 'circle': body = Bodies.circle(x, y, 20, { ...opt, render: { fillStyle: c.circle } }); break;
+                case 'triangle': body = Bodies.polygon(x, y, 3, 25, { ...opt, render: { fillStyle: c.triangle } }); break;
+                case 'bar': body = Bodies.rectangle(x, y, 80, 12, { ...opt, render: { fillStyle: c.bar } }); break;
+                case 'star': body = Bodies.polygon(x, y, 5, 22, { ...opt, render: { fillStyle: c.star } }); break;
+            }
+            if (body) Composite.add(world, body);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            if (currentPoints.length < 2) return;
+            const bodies = [];
+            const color = `hsl(${Math.random() * 360}, 80%, 65%)`;
+            for (let i = 0; i < currentPoints.length - 1; i++) {
+                const p1 = currentPoints[i], p2 = currentPoints[i+1];
+                const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                const part = Bodies.rectangle((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, len + 6, 14, {
+                    render: { fillStyle: color }, friction: 0.1
+                });
+                Body.setAngle(part, Math.atan2(p2.y - p1.y, p2.x - p1.x));
+                bodies.push(part);
+            }
+            Composite.add(world, Body.create({ parts: bodies, friction: 0.1 }));
+            currentPoints = [];
+        }
+
+        document.getElementById('clearBtn').onclick = () => {
+            Composite.allBodies(world).forEach(b => { if (!b.isStatic) Composite.remove(world, b); });
+        };
+
+        (function renderLoop() {
+            requestAnimationFrame(renderLoop);
+            if (isDrawing && currentPoints.length > 1) {
+                ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 14;
+                ctx.lineCap = 'round'; ctx.moveTo(currentPoints[0].x, currentPoints[0].y);
+                currentPoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+            }
+        })();
+
+        window.addEventListener('resize', updateWalls);
+    </script>
 </body>
 </html>
