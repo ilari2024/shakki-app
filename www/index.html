@@ -1,257 +1,1795 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koulun Ruokalista</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            background-color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .menu-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .filter-btn {
-            transition: all 0.2s ease;
-        }
-        .filter-btn.active {
-            background-color: #2563eb;
-            color: white;
-            border-color: #2563eb;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-up {
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KotiKauppa Kasino</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --gold: #FFD700;
+    --yellow: #F5C800;
+    --black: #0a0a0a;
+    --dark: #141414;
+    --card: #1e1e1e;
+    --accent: #FF6B00;
+    --green: #00C851;
+    --red: #ff4444;
+    --text: #f0f0f0;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: var(--dark);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── STATUS BAR ─── */
+  .status-bar {
+    background: var(--black);
+    padding: 12px 24px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-size: 15px; font-weight: 800; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .screen.active { display: flex; }
+
+  /* ─── AUTH SCREEN ─── */
+  #auth-screen {
+    background: linear-gradient(160deg, #0a0a0a 0%, #1a1200 50%, #0a0a0a 100%);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 0;
+  }
+
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .auth-logo .logo-text {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 52px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,215,0,0.4);
+    line-height: 1;
+  }
+  .auth-logo .logo-sub {
+    font-size: 12px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .coins-animation {
+    font-size: 40px;
+    margin-bottom: 8px;
+    animation: coinBounce 2s ease-in-out infinite;
+  }
+  @keyframes coinBounce {
+    0%,100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-8px) rotate(5deg); }
+  }
+
+  .auth-card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    border: 1px solid rgba(255,215,0,0.15);
+  }
+
+  .auth-tabs {
+    display: flex;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+    border: none;
+    background: none;
+  }
+  .auth-tab.active {
+    background: var(--gold);
+    color: var(--black);
+  }
+
+  .input-group {
+    margin-bottom: 14px;
+  }
+  .input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .input-group input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus {
+    border-color: var(--gold);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+    border: none;
+    border-radius: 12px;
+    color: var(--black);
+    font-family: 'Bebas Neue', cursive;
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .btn-google {
+    width: 100%;
+    padding: 12px;
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    color: #333;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .btn-google:active { transform: scale(0.97); opacity: 0.9; }
+  .btn-google img { width: 20px; height: 20px; }
+
+  .auth-error {
+    background: rgba(255,68,68,0.15);
+    border: 1px solid rgba(255,68,68,0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--red);
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* ─── MAIN APP ─── */
+  #app-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #app-screen.active { display: flex; }
+
+  /* ─── TOP BAR ─── */
+  .top-bar {
+    background: var(--tabbar-bg, var(--black));
+    padding: 8px 16px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--tabbar-border, rgba(255,215,0,0.08));
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .top-bar .app-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--gold);
+  }
+  .balance-chip {
+    background: linear-gradient(135deg, #1a1200, #2a1e00);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ─── CONTENT AREA ─── */
+  .content-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .content-area::-webkit-scrollbar { display: none; }
+
+  /* ─── HOME PAGE ─── */
+  .home-page { padding: 12px; }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .game-card {
+    background: var(--card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .game-card:active { transform: scale(0.96); }
+  .game-card.featured {
+    grid-column: 1 / -1;
+    border-color: rgba(255,215,0,0.2);
+    box-shadow: 0 0 20px rgba(255,215,0,0.1);
+  }
+
+  .game-visual {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .game-card.featured .game-visual { height: 130px; font-size: 64px; }
+
+  .bg-slots { background: linear-gradient(135deg, #1a0030, #3d0066); }
+  .bg-roulette { background: linear-gradient(135deg, #001a10, #003d20); }
+  .bg-blackjack { background: linear-gradient(135deg, #00101a, #00263d); }
+  .bg-dice { background: linear-gradient(135deg, #1a1000, #3d2600); }
+
+  .game-info { padding: 10px 12px 12px; }
+  .game-name {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+  .game-card.featured .game-name { font-size: 22px; }
+  .game-rtp {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .hot-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  /* ─── SLOT MACHINE ─── */
+  .slot-container {
+    background: linear-gradient(160deg, #0d0020, #1a0040);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(128,0,255,0.3);
+    margin-bottom: 16px;
+  }
+  .slot-title {
+    text-align: center;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 24px;
+    color: #b366ff;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .slot-reels {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .reel {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(128,0,255,0.4);
+    border-radius: 10px;
+    width: 70px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    position: relative;
+    overflow: hidden;
+  }
+  .reel.spinning .reel-symbol {
+    animation: spinReel 0.15s linear infinite;
+  }
+  @keyframes spinReel {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .slot-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #6600cc, #9933ff);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(128,0,255,0.4);
+    transition: transform 0.1s;
+  }
+  .slot-btn:active { transform: scale(0.97); }
+  .slot-result {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 8px;
+    min-height: 18px;
+    color: var(--gold);
+  }
+
+  /* ─── BET CONTROLS ─── */
+  .bet-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .bet-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 800;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bet-amount {
+    background: rgba(255,215,0,0.1);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--gold);
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* ─── SHOP PAGE ─── */
+  .shop-page { padding: 12px; }
+  .shop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .shop-item {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s;
+    position: relative;
+  }
+  .shop-item:active { transform: scale(0.96); }
+  .shop-item.popular { border-color: rgba(255,215,0,0.3); }
+  .shop-item .item-icon { font-size: 36px; margin-bottom: 8px; }
+  .shop-item .item-name {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .shop-item .item-amount {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .shop-item .item-price {
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--black);
+    display: inline-block;
+  }
+  .popular-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: var(--gold);
+    color: var(--black);
+    font-size: 9px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 0 16px 0 10px;
+    letter-spacing: 1px;
+  }
+
+  .daily-bonus {
+    background: linear-gradient(135deg, #001a3d, #002d6b);
+    border: 1px solid rgba(0,150,255,0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .daily-bonus .bonus-info .bonus-label {
+    font-size: 11px;
+    color: #69b3ff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .daily-bonus .bonus-info .bonus-amount {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 26px;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+  .btn-collect {
+    background: linear-gradient(135deg, #0066ff, #0099ff);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 16px;
+    letter-spacing: 1px;
+    padding: 10px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,100,255,0.3);
+  }
+
+  /* ─── BOTTOM TABS ─── */
+  .bottom-tabs {
+    background: var(--tabbar-bg, var(--black));
+    display: flex;
+    border-top: 1px solid var(--tabbar-border, rgba(255,215,0,0.15));
+    flex-shrink: 0;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: all 0.2s;
+  }
+  .tab-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .tab-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--tab-muted, var(--muted));
+    transition: color 0.2s;
+  }
+  .tab-btn.active .tab-label { color: var(--gold); }
+  .tab-btn.active .tab-icon { filter: drop-shadow(0 0 6px rgba(255,215,0,0.5)); }
+  .tab-indicator {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .tab-btn.active .tab-indicator { opacity: 1; }
+
+  /* ─── WIN TOAST ─── */
+  .win-toast {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+    color: var(--black);
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.4s;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .win-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Particle effects */
+  .particle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    animation: particleFly 1.5s ease-out forwards;
+    z-index: 50;
+  }
+  @keyframes particleFly {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-80px) scale(0.3); }
+  }
+
+  /* Scrollable pages */
+  .page-content {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .page-content::-webkit-scrollbar { display: none; }
+
+  /* ─── BLACKJACK MODAL ─── */
+  .bj-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #001a0a 0%, #003015 50%, #001a0a 100%);
+    z-index: 200;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .bj-overlay.open { display: flex; }
+
+  .bj-header {
+    background: rgba(0,0,0,0.4);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(0,200,80,0.2);
+  }
+  .bj-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: #00e86a;
+  }
+  .bj-close {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--text);
+    font-size: 20px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .bj-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 10px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .bj-table::-webkit-scrollbar { display: none; }
+
+  .bj-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(0,232,106,0.6);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .bj-score {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 28px;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+  .bj-score.bust { color: var(--red); }
+  .bj-score.bj { color: var(--gold); }
+
+  .cards-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 80px;
+    align-items: flex-start;
+  }
+
+  .playing-card {
+    width: 52px;
+    height: 72px;
+    background: #fff;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    position: relative;
+    animation: cardDeal 0.25s ease-out;
+    flex-shrink: 0;
+  }
+  .playing-card.red { color: #d00; }
+  .playing-card.black { color: #111; }
+  .playing-card.hidden {
+    background: linear-gradient(135deg, #1a4a2a, #2d7a4a);
+    border: 2px solid rgba(0,200,80,0.3);
+  }
+  .playing-card .card-val {
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1;
+    position: absolute;
+    top: 4px; left: 5px;
+  }
+  .playing-card .card-suit {
+    font-size: 24px;
+  }
+  @keyframes cardDeal {
+    from { opacity: 0; transform: translateY(-16px) scale(0.85); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .bj-status {
+    text-align: center;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 26px;
+    letter-spacing: 2px;
+    min-height: 36px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+  .bj-status.win { color: var(--gold); background: rgba(255,215,0,0.1); }
+  .bj-status.lose { color: var(--red); background: rgba(255,68,68,0.1); }
+  .bj-status.push { color: #aaa; background: rgba(255,255,255,0.05); }
+  .bj-status.playing { color: #00e86a; }
+
+  .bj-bet-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .bj-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .bj-actions.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .bj-btn {
+    padding: 14px 8px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 18px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .bj-btn:active { transform: scale(0.96); }
+  .bj-btn:disabled { opacity: 0.35; }
+  .bj-btn.hit { background: linear-gradient(135deg, #00a844, #00e86a); color: #001a0a; }
+  .bj-btn.stand { background: linear-gradient(135deg, #cc3300, #ff5522); color: #fff; }
+  .bj-btn.double { background: linear-gradient(135deg, #cc8800, #ffaa00); color: #fff; }
+  .bj-btn.deal { background: linear-gradient(135deg, var(--gold), var(--accent)); color: var(--black); grid-column: 1/-1; font-size: 22px; }
+  .bj-btn.new { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid rgba(255,255,255,0.12); grid-column: 1/-1; }
+
+  @media (max-height: 820px) {
+    .phone { height: 100vh; border-radius: 0; }
+  }
+
+  /* ─── SHOP TABS ─── */
+  .shop-tab {
+    flex:1; padding:8px 4px; border:none; border-radius:10px;
+    font-family:'Nunito',sans-serif; font-size:11px; font-weight:800;
+    cursor:pointer; background:rgba(255,255,255,0.05); color:var(--muted);
+    transition:all 0.2s; letter-spacing:0.5px;
+  }
+  .shop-tab.active { background:var(--gold); color:var(--black); }
+
+  /* ─── COSMETIC CARD ─── */
+  .cosm-card {
+    background:var(--card); border-radius:14px; overflow:hidden;
+    border:2px solid rgba(255,255,255,0.07); cursor:pointer;
+    transition:transform 0.15s, border-color 0.2s; position:relative;
+  }
+  .cosm-card:active { transform:scale(0.95); }
+  .cosm-card.owned { border-color:rgba(0,200,80,0.5); }
+  .cosm-card.equipped { border-color:var(--gold); box-shadow:0 0 12px rgba(255,215,0,0.3); }
+  .cosm-preview { height:60px; width:100%; }
+  .cosm-info { padding:8px 10px 10px; }
+  .cosm-name { font-family:'Bebas Neue',cursive; font-size:15px; letter-spacing:1px; }
+  .cosm-price { font-size:11px; font-weight:800; color:#00c8ff; margin-top:2px; }
+  .cosm-badge {
+    position:absolute; top:6px; right:6px;
+    background:var(--gold); color:var(--black);
+    font-size:9px; font-weight:900; padding:2px 6px; border-radius:10px;
+    letter-spacing:0.5px;
+  }
+  .cosm-badge.eq { background:var(--green); color:#fff; }
+</style>
 </head>
-<body class="p-4 sm:p-6 lg:p-10">
-    <div class="max-w-xl mx-auto">
-        <!-- Otsikko -->
-        <header class="mb-8 text-center">
-            <div class="inline-block p-3 bg-blue-100 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-            </div>
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Lohjan Kouluruoka</h1>
-            <p class="text-gray-500 mt-2">Päivittäinen ruokalista suoraan koululta</p>
-            
-            <button onclick="fetchMenu()" class="mt-6 inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm active:scale-95">
-                <svg id="refresh-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Päivitä ruokalistaa
-            </button>
-        </header>
+<body>
 
-        <!-- Suodattimet -->
-        <div class="mb-8 p-1 bg-gray-100 rounded-xl flex flex-wrap justify-between gap-1 shadow-inner">
-            <button onclick="setFilter('kaikki')" id="btn-kaikki" class="filter-btn flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">KAIKKI</button>
-            <button onclick="setFilter('aamupala')" id="btn-aamupala" class="filter-btn flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">AAMUPALA</button>
-            <button onclick="setFilter('lounas')" id="btn-lounas" class="filter-btn active flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">LOUNAS</button>
-            <button onclick="setFilter('välipala')" id="btn-välipala" class="filter-btn flex-1 py-2.5 text-xs font-bold rounded-lg border border-transparent transition-all">VÄLIPALA</button>
-        </div>
+<div class="phone" id="phone">
 
-        <!-- Lataustila -->
-        <div id="loader" class="flex flex-col items-center justify-center py-20">
-            <div class="relative w-12 h-12">
-                <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-100 rounded-full"></div>
-                <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-            </div>
-            <p class="mt-4 text-gray-400 font-medium text-sm">Etsitään ruokalistaa...</p>
-        </div>
+  <!-- WIN TOAST -->
+  <div class="win-toast" id="winToast">🎉 VOITTO!</div>
 
-        <!-- Pääsisältö -->
-        <main id="content" class="hidden space-y-6">
-            <div id="menu-container" class="space-y-6"></div>
-            
-            <div id="show-more-container" class="hidden text-center pt-4">
-                <button onclick="showAllDays()" class="inline-flex items-center px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-sm active:bg-gray-100">
-                    Näytä koko viikko
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-            </div>
-        </main>
-
-        <!-- Virheilmoitus (vain jos haku todella epäonnistuu) -->
-        <div id="notice-box" class="hidden mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-3 animate-fade-up">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
-            <div class="w-full">
-                <h3 class="text-sm font-bold text-amber-800">Yhteysongelma</h3>
-                <p id="error-message" class="text-xs text-amber-700 mt-1 leading-relaxed">
-                    Ruokalistaa ei saatu noudettua juuri nyt. Kokeile päivittää sivu hetken kuluttua.
-                </p>
-            </div>
-        </div>
-
-        <footer class="mt-16 pb-8 text-center text-xs text-gray-400">
-            <p>&copy; Ruokalista v3.5</p>
-            <p class="mt-1">ilaro2024 2026</p>
-        </footer>
+  <!-- ─── AUTH SCREEN ─── -->
+  <div id="auth-screen" class="screen active" style="display:flex;">
+    <div class="auth-logo">
+      <div class="coins-animation">🎰</div>
+      <div class="logo-text">KOIKAS</div>
+      <div class="logo-sub">Leikkiraha Kasino</div>
     </div>
 
-    <script>
-        const rssUrl = "https://eruokalista.lohja.fi/AromieMenus/FI/Default/Lohja/Koulut/api/Common/Restaurant/GetRssFeed/0d4884d5-33be-4e09-82ee-66153fa4a749/1";
-        
-        let allItems = [];
-        let currentFilter = 'lounas';
-        let isShowingAllDays = false;
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Kirjaudu</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Rekisteröidy</button>
+      </div>
 
-        const proxyUrls = [
-            (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&ts=${Date.now()}`,
-            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-        ];
+      <div id="login-form">
+        <div class="input-group">
+          <label>Sähköposti</label>
+          <input type="email" id="login-email" placeholder="sinä@email.com">
+        </div>
+        <div class="input-group">
+          <label>Salasana</label>
+          <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" onclick="loginEmail()">KIRJAUDU SISÄÄN</button>
+      </div>
 
-        async function fetchMenu(proxyIndex = 0) {
-            const loader = document.getElementById('loader');
-            const content = document.getElementById('content');
-            const refreshIcon = document.getElementById('refresh-icon');
-            const noticeBox = document.getElementById('notice-box');
+      <div id="register-form" style="display:none;">
+        <div class="input-group">
+          <label>Sähköposti</label>
+          <input type="email" id="reg-email" placeholder="sinä@email.com">
+        </div>
+        <div class="input-group">
+          <label>Salasana</label>
+          <input type="password" id="reg-password" placeholder="Vähintään 6 merkkiä">
+        </div>
+        <button class="btn-primary" onclick="registerEmail()">LUO TILI</button>
+      </div>
 
-            const targetUrl = proxyUrls[proxyIndex](rssUrl);
-            
-            if (proxyIndex === 0) {
-                loader.classList.remove('hidden');
-                content.classList.add('hidden');
-                noticeBox.classList.add('hidden'); 
-                refreshIcon.classList.add('animate-spin');
-                allItems = [];
-            }
+      <div class="divider">TAI</div>
 
-            try {
-                const response = await fetch(targetUrl);
-                if (!response.ok) throw new Error(); // Heitetään virhe hiljaa
-                
-                let rawData = "";
-                if (proxyIndex === 0) {
-                    const json = await response.json();
-                    rawData = json.contents;
-                } else {
-                    rawData = await response.text();
-                }
+      <button class="btn-google" onclick="loginGoogle()">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Jatka Google-tilillä
+      </button>
 
-                if (rawData && typeof rawData === 'string') {
-                    rawData = rawData.trim();
-                    const rssIndex = rawData.indexOf('<rss');
-                    const xmlIndex = rawData.indexOf('<?xml');
-                    let start = (xmlIndex !== -1 && (rssIndex === -1 || xmlIndex < rssIndex)) ? xmlIndex : rssIndex;
-                    if (start !== -1) rawData = rawData.substring(start);
-                }
+      <div class="auth-error" id="auth-error"></div>
+    </div>
+  </div>
 
-                if (!rawData || !rawData.includes('<rss')) throw new Error();
-                
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(rawData, "text/xml");
-                if (xmlDoc.getElementsByTagName("parsererror").length > 0) throw new Error();
+  <!-- ─── APP SCREEN ─── -->
+  <div id="app-screen" class="screen">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="app-title">🎰 KOIKAS</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="balance-chip">🪙 <span id="balance">10 000</span></div>
+        <div class="balance-chip" style="border-color:rgba(0,200,255,0.4);background:linear-gradient(135deg,#001a2a,#002d3d);">💎 <span id="diamonds">0</span></div>
+      </div>
+    </div>
 
-                const items = Array.from(xmlDoc.getElementsByTagName("item"));
-                if (items.length === 0) throw new Error();
+    <!-- CONTENT -->
+    <div class="content-area">
 
-                // Jos päästään tänne, haku onnistui
-                allItems = items;
-                renderMenu();
-                content.classList.remove('hidden');
-                loader.classList.add('hidden');
-                noticeBox.classList.add('hidden');
-                refreshIcon.classList.remove('animate-spin');
-                
-                if (allItems.length > 1 && !isShowingAllDays) {
-                    document.getElementById('show-more-container').classList.remove('hidden');
-                }
-            } catch (e) { 
-                // Ei tulosteta mitään konsoliin tässä vaiheessa, jos on vielä proxy-vaihtoehtoja jäljellä
-                if (proxyIndex < proxyUrls.length - 1) {
-                    setTimeout(() => fetchMenu(proxyIndex + 1), 300);
-                } else {
-                    // Vasta jos KAIKKI epäonnistuvat, näytetään virhe käyttäjälle
-                    loader.classList.add('hidden');
-                    refreshIcon.classList.remove('animate-spin');
-                    noticeBox.classList.remove('hidden');
-                }
-            }
+      <!-- HOME PAGE -->
+      <div id="home-page" class="home-page page-content" style="display:block;">
+        <div class="section-title">🔥 PELIT</div>
+
+        <!-- SLOT MACHINE -->
+        <div class="slot-container">
+          <div class="slot-title">HEDELMÄPELI</div>
+          <div class="slot-reels">
+            <div class="reel" id="reel1"><span class="reel-symbol" id="sym1">🍒</span></div>
+            <div class="reel" id="reel2"><span class="reel-symbol" id="sym2">🍋</span></div>
+            <div class="reel" id="reel3"><span class="reel-symbol" id="sym3">⭐</span></div>
+          </div>
+          <div class="bet-control">
+            <button class="bet-btn" onclick="changeBet(-50)">−</button>
+            <div class="bet-amount">🪙 <span id="bet">100</span></div>
+            <button class="bet-btn" onclick="changeBet(50)">+</button>
+          </div>
+          <button class="slot-btn" id="spinBtn" onclick="spinSlots()">▶ PYÖRITÄ</button>
+          <div class="slot-result" id="slotResult"></div>
+        </div>
+
+        <div class="section-title">🎲 KAIKKI PELIT</div>
+        <div class="games-grid">
+          <div class="game-card featured" onclick="playGame('roulette')">
+            <div class="game-visual bg-roulette">🎡</div>
+            <div class="hot-badge">🔥 HOT</div>
+            <div class="game-info">
+              <div class="game-name">RULETTI</div>
+              <div class="game-rtp">RTP 97.3% • Korkea palkinto</div>
+            </div>
+          </div>
+          <div class="game-card" onclick="playGame('blackjack')">
+            <div class="game-visual bg-blackjack">🃏</div>
+            <div class="game-info">
+              <div class="game-name">BLACKJACK</div>
+              <div class="game-rtp">RTP 99.5%</div>
+            </div>
+          </div>
+          <div class="game-card" onclick="playGame('dice')">
+            <div class="game-visual bg-dice">🎲</div>
+            <div class="game-info">
+              <div class="game-name">NOPPA</div>
+              <div class="game-rtp">RTP 98.6%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHOP PAGE -->
+      <div id="shop-page" class="shop-page page-content" style="display:none;">
+
+        <!-- Shop tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button class="shop-tab active" id="stab-coins" onclick="switchShopTab('coins')">🪙 Kolikot</button>
+          <button class="shop-tab" id="stab-gems" onclick="switchShopTab('gems')">💎 Timantit</button>
+          <button class="shop-tab" id="stab-cosm" onclick="switchShopTab('cosm')">🎨 Kosmetiikka</button>
+        </div>
+
+        <!-- COINS sub-page -->
+        <div id="shop-coins">
+          <div class="daily-bonus">
+            <div class="bonus-info">
+              <div class="bonus-label">⏰ Päivittäinen bonus</div>
+              <div class="bonus-amount">🪙 500 KOLIKOT</div>
+            </div>
+            <button class="btn-collect" onclick="collectBonus()">KERÄÄ</button>
+          </div>
+          <div class="section-title">💰 OSTA KOLIKOITA</div>
+          <div class="shop-grid">
+            <div class="shop-item" onclick="buyCoins(1000)">
+              <div class="item-icon">💰</div>
+              <div class="item-name">ALOITUS</div>
+              <div class="item-amount">🪙 1 000</div>
+              <div class="item-price">0.99 €</div>
+            </div>
+            <div class="shop-item popular" onclick="buyCoins(5000)">
+              <div class="popular-badge">SUOSITTU</div>
+              <div class="item-icon">💎</div>
+              <div class="item-name">SUOSITTU</div>
+              <div class="item-amount">🪙 5 000</div>
+              <div class="item-price">3.99 €</div>
+            </div>
+            <div class="shop-item" onclick="buyCoins(15000)">
+              <div class="item-icon">🏆</div>
+              <div class="item-name">ISO PAKETTI</div>
+              <div class="item-amount">🪙 15 000</div>
+              <div class="item-price">9.99 €</div>
+            </div>
+            <div class="shop-item" onclick="buyCoins(50000)">
+              <div class="item-icon">👑</div>
+              <div class="item-name">VIP</div>
+              <div class="item-amount">🪙 50 000</div>
+              <div class="item-price">24.99 €</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GEMS sub-page -->
+        <div id="shop-gems" style="display:none;">
+          <div style="background:linear-gradient(135deg,#001a2a,#002d3d);border:1px solid rgba(0,200,255,0.25);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
+            <div style="font-size:36px;margin-bottom:6px;">💎</div>
+            <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;color:#00c8ff;">TIMANTIT = PREMIUM VALUUTTA</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Osta kolikoilla – käytä kosmetiikkaan</div>
+          </div>
+          <div class="section-title">💎 OSTA TIMANTTEJA</div>
+          <div class="shop-grid">
+            <div class="shop-item" onclick="buyGems(5,500)">
+              <div class="item-icon">💎</div>
+              <div class="item-name">PIKKUPAKETTI</div>
+              <div class="item-amount" style="color:#00c8ff;">💎 5</div>
+              <div class="item-price" style="background:linear-gradient(135deg,#00a8d4,#00c8ff);color:#000;">🪙 500</div>
+            </div>
+            <div class="shop-item popular" onclick="buyGems(15,1200)">
+              <div class="popular-badge">ARVO</div>
+              <div class="item-icon">💎</div>
+              <div class="item-name">ARVOKAS</div>
+              <div class="item-amount" style="color:#00c8ff;">💎 15</div>
+              <div class="item-price" style="background:linear-gradient(135deg,#00a8d4,#00c8ff);color:#000;">🪙 1 200</div>
+            </div>
+            <div class="shop-item" onclick="buyGems(40,2800)">
+              <div class="item-icon">💎</div>
+              <div class="item-name">SUURI</div>
+              <div class="item-amount" style="color:#00c8ff;">💎 40</div>
+              <div class="item-price" style="background:linear-gradient(135deg,#00a8d4,#00c8ff);color:#000;">🪙 2 800</div>
+            </div>
+            <div class="shop-item" onclick="buyGems(100,6000)">
+              <div class="popular-badge" style="background:#9933ff;">VIP</div>
+              <div class="item-icon">💜</div>
+              <div class="item-name">VIP PAKETTI</div>
+              <div class="item-amount" style="color:#00c8ff;">💎 100</div>
+              <div class="item-price" style="background:linear-gradient(135deg,#00a8d4,#00c8ff);color:#000;">🪙 6 000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COSMETICS sub-page -->
+        <div id="shop-cosm" style="display:none;">
+          <div class="section-title">🎨 TAUSTAVÄRIT</div>
+          <div id="bg-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
+
+          <div class="section-title" style="margin-top:4px;">✨ ERIKOISTEEMAT</div>
+          <div id="theme-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+        </div>
+
+        <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6;">
+            © 2024 Koikas Entertainment. Kaikki oikeudet pidätetään.( ilari)<br>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content-area -->
+
+    <!-- BOTTOM TABS -->
+    <div class="bottom-tabs">
+      <button class="tab-btn active" id="tab-koti" onclick="switchTab('koti')">
+        <div class="tab-indicator"></div>
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">Koti</span>
+      </button>
+      <button class="tab-btn" id="tab-kauppa" onclick="switchTab('kauppa')">
+        <div class="tab-indicator"></div>
+        <span class="tab-icon">🛒</span>
+        <span class="tab-label">Kauppa</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── BLACKJACK OVERLAY ─── -->
+  <div class="bj-overlay" id="bjOverlay">
+    <div class="bj-header">
+      <div class="bj-title">🃏 BLACKJACK</div>
+      <button class="bj-close" onclick="closeBJ()">✕</button>
+    </div>
+    <div class="bj-table">
+      <div>
+        <div class="bj-label">🤖 Jakaja</div>
+        <div class="cards-row" id="dealerCards"></div>
+        <div class="bj-score" id="dealerScore">–</div>
+      </div>
+      <div class="bj-status" id="bjStatus"></div>
+      <div>
+        <div class="bj-label">🙋 Sinä</div>
+        <div class="cards-row" id="playerCards"></div>
+        <div class="bj-score" id="playerScore">–</div>
+      </div>
+      <div class="bj-bet-row">
+        <button class="bet-btn" onclick="bjChangeBet(-50)">−</button>
+        <div class="bet-amount">🪙 <span id="bjBet">200</span></div>
+        <button class="bet-btn" onclick="bjChangeBet(50)">+</button>
+      </div>
+      <div class="bj-actions" id="bjActions">
+        <button class="bj-btn deal" onclick="bjDeal()">▶ JAA KORTIT</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end phone -->
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBx0qtCamr84BuLu0scEWAJKjIok6N2dko",
+  authDomain: "kirjatuminen.firebaseapp.com",
+  databaseURL: "https://kirjatuminen-default-rtdb.firebaseio.com",
+  projectId: "kirjatuminen",
+  storageBucket: "kirjatuminen.firebasestorage.app",
+  messagingSenderId: "967445541491",
+  appId: "1:967445541491:web:dc06c7c912d492d0517006",
+  measurementId: "G-5585RWDD2S"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+window._auth = auth;
+window._provider = provider;
+window._signInWithEmailAndPassword = signInWithEmailAndPassword;
+window._createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+window._signInWithPopup = signInWithPopup;
+window._signOut = signOut;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loadGameData();
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('app-screen').style.display = 'flex';
+    document.getElementById('app-screen').classList.add('active');
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('auth-screen').classList.add('active');
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('app-screen').classList.remove('active');
+  }
+});
+</script>
+
+<script>
+// ─── SAVE/LOAD GAME DATA ───
+function saveGameData() {
+  const gameData = {
+    balance: balance,
+    diamonds: diamonds,
+    ownedItems: Array.from(ownedItems),
+    equippedBg: equippedBg,
+    equippedTheme: equippedTheme,
+    bonusCollected: bonusCollected,
+    lastBonusDate: localStorage.getItem('lastBonusDate') || new Date().toDateString()
+  };
+  localStorage.setItem('kasinoGameData', JSON.stringify(gameData));
+}
+
+function loadGameData() {
+  const saved = localStorage.getItem('kasinoGameData');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      balance = data.balance || 10000;
+      diamonds = data.diamonds || 0;
+      ownedItems = new Set(data.ownedItems || ['bg_dark']);
+      equippedBg = data.equippedBg || 'bg_dark';
+      equippedTheme = data.equippedTheme || null;
+      
+      // Check if bonus was already collected today
+      const today = new Date().toDateString();
+      const lastBonus = localStorage.getItem('lastBonusDate');
+      bonusCollected = lastBonus === today;
+      
+      // Apply cosmetics if loaded
+      const bgItem = BG_ITEMS.find(b => b.id === equippedBg);
+      if (bgItem) {
+        setTimeout(() => applyBg(bgItem), 150);
+      }
+      if (equippedTheme) {
+        const themeItem = THEME_ITEMS.find(t => t.id === equippedTheme);
+        if (themeItem) {
+          setTimeout(() => applyTheme(themeItem, true), 150);
         }
+      }
+      
+      // Update UI displays
+      document.getElementById('balance').textContent = balance.toLocaleString('fi');
+      document.getElementById('diamonds').textContent = diamonds;
+      
+    } catch(e) {
+      console.error('Pelin tietojen lataaminen epäonnistui:', e);
+    }
+  } else {
+    ownedItems = new Set(['bg_dark']);
+  }
+}
 
-        function setFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`btn-${filter}`).classList.add('active');
-            if (allItems.length > 0) renderMenu();
-        }
+// ─── AUTH TAB SWITCH ───
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0 && tab==='login') || (i===1 && tab==='register'));
+  });
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  hideError();
+}
 
-        function renderMenu() {
-            const container = document.getElementById('menu-container');
-            container.innerHTML = '';
-            const displayItems = isShowingAllDays ? allItems : allItems.slice(0, 1);
+function showError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('auth-error').style.display = 'none';
+}
 
-            displayItems.forEach((item) => {
-                const title = item.getElementsByTagName("title")[0]?.textContent || "Päivä";
-                const description = item.getElementsByTagName("description")[0]?.textContent || "";
-                const mealOptions = description.split('<br><br>').filter(opt => opt.trim() !== "");
-                
-                const filteredMeals = mealOptions.filter(option => {
-                    if (currentFilter === 'kaikki') return true;
-                    return option.toLowerCase().includes(currentFilter.toLowerCase());
-                });
+// ─── LOGIN / REGISTER ───
+async function loginEmail() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) return showError('Täytä kaikki kentät.');
+  try {
+    await window._signInWithEmailAndPassword(window._auth, email, pass);
+  } catch(e) {
+    showError('Kirjautuminen epäonnistui: ' + e.message);
+  }
+}
 
-                if (filteredMeals.length === 0) return;
+async function registerEmail() {
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  if (!email || !pass) return showError('Täytä kaikki kentät.');
+  if (pass.length < 6) return showError('Salasanan on oltava vähintään 6 merkkiä.');
+  try {
+    await window._createUserWithEmailAndPassword(window._auth, email, pass);
+  } catch(e) {
+    showError('Rekisteröityminen epäonnistui: ' + e.message);
+  }
+}
 
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden menu-card animate-fade-up";
-                
-                let mealsHtml = filteredMeals.map(option => {
-                    const lines = option.split('<br>');
-                    const titleLine = lines[0];
-                    const components = lines.slice(1).join(' • ');
-                    const label = titleLine.includes(':') ? titleLine.split(':')[0] : "Lounas";
-                    const dish = titleLine.includes(':') ? titleLine.split(':')[1] : titleLine;
+async function loginGoogle() {
+  try {
+    await window._signInWithPopup(window._auth, window._provider);
+  } catch(e) {
+    showError('Google-kirjautuminen epäonnistui: ' + e.message);
+  }
+}
 
-                    let badgeColor = "bg-blue-50 text-blue-700";
-                    if (label.toLowerCase().includes("aamu")) badgeColor = "bg-orange-50 text-orange-700";
-                    if (label.toLowerCase().includes("väli")) badgeColor = "bg-purple-50 text-purple-700";
+// ─── TABS ───
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('home-page').style.display = tab === 'koti' ? 'block' : 'none';
+  document.getElementById('shop-page').style.display = tab === 'kauppa' ? 'block' : 'none';
+}
 
-                    return `
-                        <div class="p-6 border-b last:border-0 border-gray-50">
-                            <span class="inline-block px-2 py-0.5 ${badgeColor} text-[10px] font-bold uppercase tracking-wider rounded mb-2">${label}</span>
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight">${dish}</h3>
-                            ${components ? `<p class="mt-2 text-sm text-gray-400 leading-relaxed font-medium">${components}</p>` : ''}
-                        </div>
-                    `;
-                }).join('');
+// ─── BALANCE ───
+let balance = 10000;
+let bet = 100;
+let diamonds = 0;
 
-                card.innerHTML = `
-                    <div class="bg-gray-50/50 px-6 py-3 border-b border-gray-100">
-                        <div class="flex items-center text-xs font-bold text-gray-400 uppercase tracking-widest">
-                            <span class="mr-2 text-sm">📅</span> ${title}
-                        </div>
-                    </div>
-                    <div class="divide-y divide-gray-50">${mealsHtml}</div>
-                `;
-                container.appendChild(card);
-            });
-        }
+function updateBalance(delta) {
+  balance = Math.max(0, balance + delta);
+  document.getElementById('balance').textContent = balance.toLocaleString('fi');
+  saveGameData();
+}
+function updateDiamonds(delta) {
+  diamonds = Math.max(0, diamonds + delta);
+  document.getElementById('diamonds').textContent = diamonds;
+  saveGameData();
+}
 
-        function showAllDays() {
-            isShowingAllDays = true;
-            renderMenu();
-            document.getElementById('show-more-container').classList.add('hidden');
-        }
+function changeBet(delta) {
+  bet = Math.max(50, Math.min(bet + delta, 1000));
+  document.getElementById('bet').textContent = bet;
+}
 
-        window.onload = () => fetchMenu();
-    </script>
+// ─── SHOP TABS ───
+function switchShopTab(tab) {
+  ['coins','gems','cosm'].forEach(t => {
+    document.getElementById('stab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('shop-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+// ─── COINS ───
+function buyCoins(amount) {
+  updateBalance(amount);
+  showWinToast('🪙 +' + amount.toLocaleString('fi') + ' lisätty!', true);
+  spawnParticles();
+}
+
+// ─── GEMS ───
+function buyGems(amount, cost) {
+  if (balance < cost) return showWinToast('❌ EI TARPEEKSI KOLIKOITA!', false);
+  updateBalance(-cost);
+  updateDiamonds(amount);
+  showWinToast('💎 +' + amount + ' timanttia!', true);
+  spawnParticles();
+}
+
+// ─── COSMETICS ───
+const BG_ITEMS = [
+  { id:'bg_dark',    name:'Tumma yö',    cost:0,  preview:'linear-gradient(135deg,#141414,#1e1e1e)', owned:true },
+  { id:'bg_gold',    name:'Kulta',        cost:5,  preview:'linear-gradient(135deg,#1a1200,#3d2a00)' },
+  { id:'bg_ocean',   name:'Meri',         cost:5,  preview:'linear-gradient(135deg,#001a3d,#003d8f)' },
+  { id:'bg_forest',  name:'Metsä',        cost:5,  preview:'linear-gradient(135deg,#001a0a,#003d1a)' },
+  { id:'bg_purple',  name:'Violetti',     cost:8,  preview:'linear-gradient(135deg,#1a003d,#3d008f)' },
+  { id:'bg_fire',    name:'Tuli',         cost:8,  preview:'linear-gradient(135deg,#3d0a00,#8f1f00)' },
+  { id:'bg_galaxy',  name:'Galaksi',      cost:15, preview:'linear-gradient(135deg,#0a001a,#1a003d,#3d006b)' },
+  { id:'bg_aurora',  name:'Revontulet',   cost:15, preview:'linear-gradient(135deg,#001a1a,#003d2a,#001a3d)' },
+  // Light backgrounds
+  { id:'bg_white',   name:'Puhdas valko', cost:5,  preview:'linear-gradient(135deg,#f5f5f5,#ffffff)', light:true },
+  { id:'bg_peach',   name:'Persikka',     cost:5,  preview:'linear-gradient(135deg,#fff0e6,#ffd6b3)', light:true },
+  { id:'bg_sky',     name:'Taivas',       cost:5,  preview:'linear-gradient(135deg,#e6f4ff,#b3d9ff)', light:true },
+  { id:'bg_mint',    name:'Minttu',       cost:5,  preview:'linear-gradient(135deg,#e6fff5,#b3ffdc)', light:true },
+  { id:'bg_lavend',  name:'Laventeli',    cost:8,  preview:'linear-gradient(135deg,#f0e6ff,#d4b3ff)', light:true },
+  { id:'bg_rose',    name:'Ruusu',        cost:8,  preview:'linear-gradient(135deg,#ffe6f0,#ffb3d1)', light:true },
+  { id:'bg_cream',   name:'Kerma',        cost:8,  preview:'linear-gradient(135deg,#fffbe6,#fff3b3)', light:true },
+  { id:'bg_cotton',  name:'Vanukarkkii', cost:12, preview:'linear-gradient(135deg,#ffe6f5,#e6f0ff,#e6fff5)', light:true },
+];
+
+const THEME_ITEMS = [
+  // Dark themes
+  { id:'th_neon',    name:'Neon',         cost:20, preview:'linear-gradient(135deg,#001a00,#003d00)', accentVar:'#00ff88', light:false },
+  { id:'th_pink',    name:'Vaaleanpuna',  cost:20, preview:'linear-gradient(135deg,#2a001a,#5c0033)', accentVar:'#ff69b4', light:false },
+  { id:'th_ice',     name:'Jää',          cost:25, preview:'linear-gradient(135deg,#001a2a,#00264d)', accentVar:'#00d4ff', light:false },
+  { id:'th_royal',   name:'Kuninkaall.',  cost:30, preview:'linear-gradient(135deg,#1a0a00,#4d1f00)', accentVar:'#ffa500', light:false },
+  // Light themes
+  { id:'th_lemon',   name:'Sitruuna ☀️',  cost:20, preview:'linear-gradient(135deg,#fffde6,#fff9b3)', accentVar:'#e6a800', light:true },
+  { id:'th_blossom', name:'Kirsikka 🌸',  cost:20, preview:'linear-gradient(135deg,#ffe6f0,#ffc2d9)', accentVar:'#d63875', light:true },
+  { id:'th_sky2',    name:'Sininen taivas 🩵', cost:25, preview:'linear-gradient(135deg,#e6f4ff,#b3d9ff)', accentVar:'#0077cc', light:true },
+  { id:'th_lime',    name:'Limonadi 🍋',  cost:25, preview:'linear-gradient(135deg,#f0ffe6,#ccffb3)', accentVar:'#3a9900', light:true },
+  { id:'th_lilac',   name:'Lila 💜',      cost:30, preview:'linear-gradient(135deg,#f5e6ff,#ddb3ff)', accentVar:'#7700cc', light:true },
+  { id:'th_coral',   name:'Korallit 🪸',  cost:30, preview:'linear-gradient(135deg,#fff0e6,#ffceb3)', accentVar:'#cc4400', light:true },
+];
+
+let ownedItems = new Set(['bg_dark']);
+let equippedBg = 'bg_dark';
+let equippedTheme = null;
+let isLightMode = false;
+
+function renderCosmetics() {
+  const bgGrid = document.getElementById('bg-grid');
+  const thGrid = document.getElementById('theme-grid');
+  bgGrid.innerHTML = '';
+  thGrid.innerHTML = '';
+
+  // section labels
+  const darkBgs = BG_ITEMS.filter(i=>!i.light);
+  const lightBgs = BG_ITEMS.filter(i=>i.light);
+
+  const bgLabel2 = document.createElement('div');
+  bgLabel2.innerHTML = '<div style="grid-column:1/-1;font-family:\'Bebas Neue\',cursive;font-size:14px;letter-spacing:2px;color:var(--muted);margin-bottom:2px;">🌙 TUMMAT</div>';
+
+  [...darkBgs, ...lightBgs].forEach((item, idx) => {
+    if (idx === darkBgs.length) {
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'grid-column:1/-1;font-family:\'Bebas Neue\',cursive;font-size:14px;letter-spacing:2px;color:var(--muted);margin:8px 0 2px;';
+      lbl.textContent = '☀️ VAALEAT';
+      bgGrid.appendChild(lbl);
+    }
+    const owned = ownedItems.has(item.id);
+    const equipped = equippedBg === item.id;
+    const card = document.createElement('div');
+    card.className = 'cosm-card' + (owned?' owned':'') + (equipped?' equipped':'');
+    card.onclick = () => handleCosm(item, 'bg');
+    card.innerHTML = `
+      <div class="cosm-preview" style="background:${item.preview};"></div>
+      <div class="cosm-info">
+        <div class="cosm-name" style="color:${item.light?'#333':'var(--text)'}">${item.name}</div>
+        <div class="cosm-price">${owned ? (equipped?'✅ KÄYTÖSSÄ':'✔ OMISTETTU') : '💎 '+item.cost}</div>
+      </div>
+      ${equipped ? '<div class="cosm-badge eq">KÄYTÖSSÄ</div>' : (owned ? '<div class="cosm-badge" style="background:var(--green);color:#fff;">OMISTETTU</div>' : '')}
+    `;
+    bgGrid.appendChild(card);
+  });
+
+  const darkThemes = THEME_ITEMS.filter(i=>!i.light);
+  const lightThemes = THEME_ITEMS.filter(i=>i.light);
+
+  [...darkThemes, ...lightThemes].forEach((item, idx) => {
+    if (idx === darkThemes.length) {
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'grid-column:1/-1;font-family:\'Bebas Neue\',cursive;font-size:14px;letter-spacing:2px;color:var(--muted);margin:8px 0 2px;';
+      lbl.textContent = '☀️ VAALEAT TEEMAT';
+      thGrid.appendChild(lbl);
+    }
+    const owned = ownedItems.has(item.id);
+    const equipped = equippedTheme === item.id;
+    const card = document.createElement('div');
+    card.className = 'cosm-card' + (owned?' owned':'') + (equipped?' equipped':'');
+    card.onclick = () => handleCosm(item, 'theme');
+    card.innerHTML = `
+      <div class="cosm-preview" style="background:${item.preview};display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:20px;color:${item.accentVar};font-weight:900;font-family:'Bebas Neue',cursive;letter-spacing:2px;text-shadow:0 1px 4px rgba(0,0,0,0.15);">Aa</span>
+      </div>
+      <div class="cosm-info">
+        <div class="cosm-name">${item.name}</div>
+        <div class="cosm-price">${owned ? (equipped?'✅ KÄYTÖSSÄ':'✔ OMISTETTU') : '💎 '+item.cost}</div>
+      </div>
+      ${equipped ? '<div class="cosm-badge eq">KÄYTÖSSÄ</div>' : ''}
+    `;
+    thGrid.appendChild(card);
+  });
+}
+
+function handleCosm(item, type) {
+  const owned = ownedItems.has(item.id);
+  if (!owned) {
+    if (diamonds < item.cost) return showWinToast('❌ EI TARPEEKSI TIMANTTEJA!', false);
+    updateDiamonds(-item.cost);
+    ownedItems.add(item.id);
+    showWinToast('✨ ' + item.name + ' ostettu!', true);
+  }
+  if (type === 'bg') {
+    equippedBg = item.id;
+    applyBg(item);
+  } else {
+    equippedTheme = equippedTheme === item.id ? null : item.id;
+    applyTheme(item, equippedTheme === item.id);
+  }
+  renderCosmetics();
+  saveGameData();
+}
+
+function applyBg(item) {
+  const bg = BG_ITEMS.find(b => b.id === item.id);
+  if (!bg) return;
+  const appEl = document.getElementById('app-screen');
+  appEl.style.background = bg.preview;
+  // switch text colors for light backgrounds
+  isLightMode = !!bg.light;
+  applyLightDark();
+}
+
+function applyTheme(item, on) {
+  const r = document.documentElement;
+  if (on) {
+    r.style.setProperty('--gold', item.accentVar);
+    isLightMode = !!item.light;
+  } else {
+    r.style.setProperty('--gold', '#FFD700');
+    // revert to bg lightness
+    const bg = BG_ITEMS.find(b=>b.id===equippedBg);
+    isLightMode = bg ? !!bg.light : false;
+  }
+  applyLightDark();
+}
+
+function applyLightDark() {
+  const r = document.documentElement;
+  if (isLightMode) {
+    r.style.setProperty('--text', '#111');
+    r.style.setProperty('--muted', '#555');
+    r.style.setProperty('--card', 'rgba(255,255,255,0.75)');
+    r.style.setProperty('--dark', 'rgba(240,240,240,0.6)');
+    r.style.setProperty('--tabbar-bg', 'rgba(255,255,255,0.88)');
+    r.style.setProperty('--tabbar-border', 'rgba(0,0,0,0.1)');
+    r.style.setProperty('--tab-muted', '#777');
+  } else {
+    r.style.setProperty('--text', '#f0f0f0');
+    r.style.setProperty('--muted', '#888');
+    r.style.setProperty('--card', '#1e1e1e');
+    r.style.setProperty('--dark', '#141414');
+    r.style.setProperty('--tabbar-bg', '#0a0a0a');
+    r.style.setProperty('--tabbar-border', 'rgba(255,215,0,0.15)');
+    r.style.setProperty('--tab-muted', '#888');
+  }
+}
+
+// init cosmetics after DOM ready
+setTimeout(renderCosmetics, 100);
+
+// ─── SLOTS ───
+const symbols = ['🍒','🍋','🍊','🍇','⭐','💎','7️⃣','🎰'];
+const weights = [30, 25, 20, 15, 5, 3, 1.5, 0.5];
+
+function weightedRandom() {
+  const total = weights.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  for (let i=0; i<symbols.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return symbols[i];
+  }
+  return symbols[0];
+}
+
+function spinSlots() {
+  if (balance < bet) return showWinToast('❌ EI SALDOA!', false);
+  updateBalance(-bet);
+  document.getElementById('slotResult').textContent = '';
+
+  const reelEls = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+  ];
+  const symEls = [
+    document.getElementById('sym1'),
+    document.getElementById('sym2'),
+    document.getElementById('sym3')
+  ];
+
+  reelEls.forEach(r => r.classList.add('spinning'));
+  document.getElementById('spinBtn').disabled = true;
+
+  const results = [weightedRandom(), weightedRandom(), weightedRandom()];
+
+  [0,1,2].forEach(i => {
+    setTimeout(() => {
+      reelEls[i].classList.remove('spinning');
+      symEls[i].textContent = results[i];
+    }, 400 + i * 200);
+  });
+
+  setTimeout(() => {
+    document.getElementById('spinBtn').disabled = false;
+    evaluateSlots(results);
+  }, 1100);
+}
+
+function evaluateSlots(res) {
+  const [a,b,c] = res;
+  let win = 0;
+  let msg = '';
+
+  if (a === b && b === c) {
+    if (a === '🎰') { win = bet * 50; msg = '🎰 JACKPOT! x50'; }
+    else if (a === '7️⃣') { win = bet * 20; msg = '7️⃣ TRIPLE 7! x20'; }
+    else if (a === '💎') { win = bet * 15; msg = '💎 TIMANTTI! x15'; }
+    else if (a === '⭐') { win = bet * 10; msg = '⭐ TÄHDET! x10'; }
+    else { win = bet * 5; msg = '🎉 KOLME SAMAA! x5'; }
+  } else if (a === b || b === c || a === c) {
+    win = Math.floor(bet * 1.5);
+    msg = '✨ KAKSI SAMAA! x1.5';
+  }
+
+  if (win > 0) {
+    updateBalance(win);
+    showWinToast('🎉 +' + win.toLocaleString('fi') + ' 🪙', true);
+    spawnParticles();
+  }
+  document.getElementById('slotResult').textContent = msg || (Math.random() > 0.7 ? 'vähisit!' : '');
+}
+
+// ─── WIN TOAST ───
+function showWinToast(msg, isWin) {
+  const t = document.getElementById('winToast');
+  t.textContent = msg;
+  t.style.background = isWin
+    ? 'linear-gradient(135deg, var(--gold), var(--accent))'
+    : 'linear-gradient(135deg, #333, #555)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function spawnParticles() {
+  const emojis = ['🪙','⭐','✨','🎉','💰'];
+  for (let i=0; i<6; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      p.style.left = (30 + Math.random()*40) + '%';
+      p.style.top = '45%';
+      document.getElementById('phone').appendChild(p);
+      setTimeout(() => p.remove(), 1500);
+    }, i*80);
+  }
+}
+
+// ─── GAME CARDS ───
+function playGame(game) {
+  if (game === 'blackjack') return openBJ();
+  const icons = { roulette: '🎡', dice: '🎲' };
+  const chance = { roulette: 0.48, dice: 0.47 };
+  const mult = { roulette: 1.9, dice: 2.0 };
+  if (balance < 100) return showWinToast('❌ EI SALDOA!', false);
+  const wager = Math.min(200, balance);
+  updateBalance(-wager);
+  const win = Math.random() < chance[game];
+  if (win) {
+    const prize = Math.floor(wager * mult[game]);
+    updateBalance(prize);
+    showWinToast(icons[game] + ' +' + prize.toLocaleString('fi') + ' 🪙', true);
+    spawnParticles();
+  } else {
+    showWinToast(icons[game] + ' Ei onnea...', false);
+  }
+}
+
+// ─── BLACKJACK ───
+const SUITS = ['♠','♥','♦','♣'];
+const VALUES = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let bjDeck = [], bjPlayer = [], bjDealer = [], bjBet = 200, bjActive = false;
+
+function openBJ() {
+  document.getElementById('bjOverlay').classList.add('open');
+  bjResetUI();
+}
+function closeBJ() {
+  if (bjActive) return; // prevent close mid-game
+  document.getElementById('bjOverlay').classList.remove('open');
+}
+
+function bjChangeBet(d) {
+  if (bjActive) return;
+  bjBet = Math.max(50, Math.min(bjBet + d, Math.min(2000, balance)));
+  document.getElementById('bjBet').textContent = bjBet;
+}
+
+function buildDeck() {
+  const deck = [];
+  for (const s of SUITS) for (const v of VALUES) deck.push({s, v});
+  // shuffle
+  for (let i = deck.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+
+function cardValue(v) {
+  if (['J','Q','K'].includes(v)) return 10;
+  if (v === 'A') return 11;
+  return parseInt(v);
+}
+
+function handTotal(hand) {
+  let total = 0, aces = 0;
+  for (const c of hand) {
+    total += cardValue(c.v);
+    if (c.v === 'A') aces++;
+  }
+  while (total > 21 && aces > 0) { total -= 10; aces--; }
+  return total;
+}
+
+function isRed(suit) { return suit === '♥' || suit === '♦'; }
+
+function renderCard(card, hidden=false) {
+  const el = document.createElement('div');
+  el.className = 'playing-card' + (hidden ? ' hidden' : (isRed(card.s) ? ' red' : ' black'));
+  if (hidden) {
+    el.innerHTML = '<span style="font-size:28px">🂠</span>';
+  } else {
+    el.innerHTML = `<span class="card-val">${card.v}</span><span class="card-suit">${card.s}</span>`;
+  }
+  return el;
+}
+
+function renderHands(hideDealer=true) {
+  const pc = document.getElementById('playerCards');
+  const dc = document.getElementById('dealerCards');
+  pc.innerHTML = ''; dc.innerHTML = '';
+  bjPlayer.forEach(c => pc.appendChild(renderCard(c)));
+  bjDealer.forEach((c,i) => dc.appendChild(renderCard(c, hideDealer && i===1)));
+
+  const ps = handTotal(bjPlayer);
+  document.getElementById('playerScore').textContent = ps;
+  document.getElementById('playerScore').className = 'bj-score' + (ps>21?' bust':'') + (ps===21?' bj':'');
+
+  if (hideDealer) {
+    document.getElementById('dealerScore').textContent = cardValue(bjDealer[0].v);
+    document.getElementById('dealerScore').className = 'bj-score';
+  } else {
+    const ds = handTotal(bjDealer);
+    document.getElementById('dealerScore').textContent = ds;
+    document.getElementById('dealerScore').className = 'bj-score' + (ds>21?' bust':'') + (ds===21?' bj':'');
+  }
+}
+
+function setActions(state) {
+  const el = document.getElementById('bjActions');
+  if (state === 'deal') {
+    el.className = 'bj-actions';
+    el.innerHTML = `<button class="bj-btn deal" onclick="bjDeal()">▶ JAA KORTIT</button>`;
+  } else if (state === 'play') {
+    const canDouble = balance >= bjBet && bjPlayer.length === 2;
+    el.className = 'bj-actions' + (canDouble ? ' three' : '');
+    el.innerHTML = `
+      <button class="bj-btn hit" onclick="bjHit()">✚ NOSTA</button>
+      <button class="bj-btn stand" onclick="bjStand()">✋ LOPETA</button>
+      ${canDouble ? `<button class="bj-btn double" onclick="bjDouble()">2× TUPLAA</button>` : ''}
+    `;
+  } else if (state === 'over') {
+    el.className = 'bj-actions';
+    el.innerHTML = `<button class="bj-btn new" onclick="bjResetUI()">🔄 UUSI PELI</button>`;
+  }
+}
+
+function bjResetUI() {
+  bjActive = false;
+  bjPlayer = []; bjDealer = [];
+  document.getElementById('playerCards').innerHTML = '';
+  document.getElementById('dealerCards').innerHTML = '';
+  document.getElementById('playerScore').textContent = '–';
+  document.getElementById('dealerScore').textContent = '–';
+  document.getElementById('bjStatus').textContent = '';
+  document.getElementById('bjStatus').className = 'bj-status';
+  document.getElementById('bjBet').textContent = bjBet;
+  setActions('deal');
+}
+
+function bjDeal() {
+  if (balance < bjBet) return showWinToast('❌ EI SALDOA!', false);
+  updateBalance(-bjBet);
+  bjActive = true;
+  bjDeck = buildDeck();
+  bjPlayer = [bjDeck.pop(), bjDeck.pop()];
+  bjDealer = [bjDeck.pop(), bjDeck.pop()];
+  renderHands(true);
+  document.getElementById('bjStatus').textContent = '';
+  document.getElementById('bjStatus').className = 'bj-status playing';
+
+  // Check instant blackjack
+  if (handTotal(bjPlayer) === 21) {
+    setTimeout(() => bjRevealAndEnd(), 600);
+    return;
+  }
+  setActions('play');
+}
+
+function bjHit() {
+  bjPlayer.push(bjDeck.pop());
+  renderHands(true);
+  if (handTotal(bjPlayer) >= 21) setTimeout(() => bjRevealAndEnd(), 400);
+}
+
+function bjStand() {
+  bjRevealAndEnd();
+}
+
+function bjDouble() {
+  updateBalance(-bjBet);
+  bjBet *= 2;
+  document.getElementById('bjBet').textContent = bjBet;
+  bjPlayer.push(bjDeck.pop());
+  renderHands(true);
+  setTimeout(() => bjRevealAndEnd(), 400);
+}
+
+function bjRevealAndEnd() {
+  setActions('over');
+  // Dealer draws to 17
+  while (handTotal(bjDealer) < 17) bjDealer.push(bjDeck.pop());
+  renderHands(false);
+
+  const ps = handTotal(bjPlayer);
+  const ds = handTotal(bjDealer);
+  const statusEl = document.getElementById('bjStatus');
+  let msg = '', cls = '';
+
+  if (ps > 21) {
+    msg = '💥 YLIOSTO – HÄVISIT'; cls = 'lose';
+  } else if (ps === 21 && bjPlayer.length === 2 && !(ds===21 && bjDealer.length===2)) {
+    // Player Blackjack
+    const prize = Math.floor(bjBet * 2.5);
+    updateBalance(prize);
+    msg = '🃏 BLACKJACK! +' + prize.toLocaleString('fi') + ' 🪙'; cls = 'win';
+    spawnParticles();
+  } else if (ds > 21) {
+    const prize = bjBet * 2;
+    updateBalance(prize);
+    msg = '🎉 JAKAJA YLI! +' + prize.toLocaleString('fi') + ' 🪙'; cls = 'win';
+    spawnParticles();
+  } else if (ps > ds) {
+    const prize = bjBet * 2;
+    updateBalance(prize);
+    msg = '✅ VOITTO! +' + prize.toLocaleString('fi') + ' 🪙'; cls = 'win';
+    spawnParticles();
+  } else if (ps === ds) {
+    updateBalance(bjBet);
+    msg = '🤝 TASAPELI – Panos palautettu'; cls = 'push';
+  } else {
+    msg = '❌ HÄVISIT'; cls = 'lose';
+  }
+
+  statusEl.textContent = msg;
+  statusEl.className = 'bj-status ' + cls;
+  bjActive = false;
+  // reset bjBet for next round if doubled
+  if (msg.includes('TUPLAA') || bjBet > 2000) bjBet = 200;
+}
+
+let bonusCollected = false;
+function collectBonus() {
+  if (bonusCollected) return showWinToast('⏰ Tule huomenna!', false);
+  bonusCollected = true;
+  const today = new Date().toDateString();
+  localStorage.setItem('lastBonusDate', today);
+  updateBalance(500);
+  showWinToast('🎁 +500 🪙 Bonus!', true);
+  spawnParticles();
+}
+</script>
 </body>
 </html>
-
