@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.example.shakki" version="1.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>KOLMIOPELI by ilari</name>
+    <name>Kasino</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+        ilarin :DD
     </description>
-    <author email="ilari2024@hotmail.com" href="https://cordova.apache.org">
+    <author email="ilari2024@hotmail.com" href="https://youtube.com/@etar">
         ilari
     </author>
     <content src="index.html" />
